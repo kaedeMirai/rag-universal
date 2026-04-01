@@ -1,0 +1,26 @@
+[project]
+name = "project_rag_system"
+version = "0.1.0"
+description = "RAG system for internal documentation with FastAPI, Streamlit and PostgreSQL auth"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "accelerate>=1.12.0",
+    "bcrypt>=4.3.0",
+    "datasets>=4.4.2",
+    "email-validator>=2.3.0",
+    "faiss-cpu>=1.13.2",
+    "fastapi[standard]>=0.128.0",
+    "git-filter-repo>=2.47.0",
+    "loguru>=0.7.3",
+    "psycopg>=3.3.3",
+    "pypdf2>=3.0.1",
+    "python-docx>=1.2.0",
+    "sentence-transformers>=5.2.0",
+    "sentencepiece>=0.2.1",
+    "smbprotocol>=1.16.0",
+    "streamlit>=1.52.2",
+    "torch>=2.9.1",
+    "transformers>=4.57.3",
+    "uvicorn>=0.40.0",
+]

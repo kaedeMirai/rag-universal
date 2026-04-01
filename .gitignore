@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+
+# uv
+.uv/
+
+# Environment variables
+.env
+
+# Streamlit
+.streamlit/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Data / artifacts
+data/
+faiss_index/
+qdrant_data/
+scripts/full_directory/documents_data.csv
+
+scripts/
