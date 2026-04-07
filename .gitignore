@@ -33,4 +33,9 @@ faiss_index/
 qdrant_data/
 scripts/full_directory/documents_data.csv
 
-scripts/
+scripts/vector.index
+scripts/documents_data.csv
+scripts/run_eval.py
+scripts/preparing_uploading.ipynb
+
+backend/scripts

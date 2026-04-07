@@ -190,7 +190,7 @@ def load_settings() -> Settings:
         / _get_str("RAG_METADATA_PATH", "scripts/meta_data.json"),
         source_csv_path=ROOT_DIR / _get_str("RAG_SOURCE_CSV_PATH", "scripts/temp.csv"),
         weaviate_http_host=_get_str("RAG_WEAVIATE_HTTP_HOST", "127.0.0.1"),
-        weaviate_http_port=_get_int("RAG_WEAVIATE_HTTP_PORT", 8081),
+        weaviate_http_port=_get_int("RAG_WEAVIATE_HTTP_PORT", 8080),
         weaviate_http_secure=_get_bool("RAG_WEAVIATE_HTTP_SECURE", False),
         weaviate_grpc_host=_get_str("RAG_WEAVIATE_GRPC_HOST", "127.0.0.1"),
         weaviate_grpc_port=_get_int("RAG_WEAVIATE_GRPC_PORT", 50051),
