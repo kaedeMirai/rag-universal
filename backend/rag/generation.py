@@ -51,9 +51,13 @@ class GeneratorEngine:
         used_tokens = 0
 
         for idx, chunk in enumerate(chunks, start=1):
+            locator_line = (
+                f"Локация: {chunk.source_locator}\n" if chunk.source_locator else ""
+            )
             section = (
                 f"[Источник {idx}] {chunk.title}\n"
                 f"Путь: {chunk.path}\n"
+                f"{locator_line}"
                 f"Текст: {chunk.text}"
             )
             section_tokens = self.provider.count_tokens(section)

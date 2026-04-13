@@ -8,6 +8,9 @@ class RetrievedChunk:
     path: str
     title: str
     text: str
+    page_start: int | None
+    page_end: int | None
+    source_locator: str
     dense_score: float
     bm25_score: float
     raw_bm25: float | None

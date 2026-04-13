@@ -5,7 +5,11 @@ TOKEN_PATTERN = re.compile(r"\w+", re.UNICODE)
 
 
 def normalize_text(text: str) -> str:
-    return re.sub(r"\s+", " ", text).strip()
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    normalized = re.sub(r"[ \t]+", " ", normalized)
+    normalized = "\n".join(line.strip() for line in normalized.splitlines())
+    normalized = re.sub(r"\n{3,}", "\n\n", normalized)
+    return normalized.strip()
 
 
 def tokenize(text: str) -> list[str]:

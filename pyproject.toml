@@ -13,6 +13,7 @@ dependencies = [
     "git-filter-repo>=2.47.0",
     "loguru>=0.7.3",
     "psycopg>=3.3.3",
+    "pymupdf>=1.26.5",
     "pypdf2>=3.0.1",
     "python-docx>=1.2.0",
     "sentence-transformers>=5.2.0",

@@ -43,12 +43,18 @@ class RetrievalEngine:
         title = str(item.get("title", "") or Path(path).name or "chunk")
         text = normalize_text(str(item.get("text", "") or ""))
         chunk_id = int(item.get("chunk_id", 0) or 0)
+        page_start = int(item.get("page_start", 0) or 0) or None
+        page_end = int(item.get("page_end", 0) or 0) or None
+        source_locator = str(item.get("source_locator", "") or "")
 
         return {
             "chunk_id": chunk_id,
             "path": path,
             "title": title,
             "text": text,
+            "page_start": page_start,
+            "page_end": page_end,
+            "source_locator": source_locator,
             "title_tokens": set(tokenize(title)),
             "path_tokens": set(tokenize(path)),
         }
@@ -225,6 +231,9 @@ class RetrievalEngine:
                     path=item["path"],
                     title=item["title"],
                     text=item["text"],
+                    page_start=item["page_start"],
+                    page_end=item["page_end"],
+                    source_locator=item["source_locator"],
                     dense_score=dense_score,
                     bm25_score=bm25_score,
                     raw_bm25=raw_bm25,
