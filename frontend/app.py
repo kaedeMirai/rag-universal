@@ -181,8 +181,13 @@ def chat_view():
         sources = data.get("sources", [])
         if sources:
             st.markdown("**Источники:**")
-            for source_path in sources:
-                st.code(source_path)
+            for index, source_path in enumerate(sources):
+                st.text_input(
+                    f"Путь {index + 1}",
+                    value=source_path,
+                    disabled=True,
+                    key=f"source_path_{index}_{source_path}",
+                )
         else:
             st.write("Источники не найдены")
 

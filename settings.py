@@ -108,6 +108,9 @@ class Settings:
     dense_top_k: int
     bm25_top_k: int
     final_top_k: int
+    reranker_enabled: bool
+    reranker_top_k: int
+    reranker_weight: float
     max_context_tokens: int
     max_chunks_per_document: int
     doc_lookup_final_top_k: int
@@ -142,6 +145,11 @@ class Settings:
     chunk_overlap: int
     embedding_batch_size: int
     embedding_device: str
+    reranker_provider: str
+    reranker_model_name: str
+    reranker_device: str
+    reranker_batch_size: int
+    reranker_max_length: int
 
     document_lookup_pattern: str
     reference_stopwords: set[str]
@@ -201,6 +209,9 @@ def load_settings() -> Settings:
         dense_top_k=_get_int("RAG_DENSE_TOP_K", 24),
         bm25_top_k=_get_int("RAG_BM25_TOP_K", 24),
         final_top_k=_get_int("RAG_FINAL_TOP_K", 6),
+        reranker_enabled=_get_bool("RAG_RERANKER_ENABLED", True),
+        reranker_top_k=_get_int("RAG_RERANKER_TOP_K", 24),
+        reranker_weight=_get_float("RAG_RERANKER_WEIGHT", 0.65),
         max_context_tokens=_get_int("RAG_MAX_CONTEXT_TOKENS", 1200),
         max_chunks_per_document=_get_int("RAG_MAX_CHUNKS_PER_DOCUMENT", 2),
         doc_lookup_final_top_k=_get_int("RAG_DOC_LOOKUP_FINAL_TOP_K", 4),
@@ -233,6 +244,14 @@ def load_settings() -> Settings:
         chunk_overlap=_get_int("RAG_CHUNK_OVERLAP", 100),
         embedding_batch_size=_get_int("RAG_EMBEDDING_BATCH_SIZE", 8),
         embedding_device=_get_str("RAG_EMBEDDING_DEVICE", "cuda"),
+        reranker_provider=_get_str("RAG_RERANKER_PROVIDER", "huggingface"),
+        reranker_model_name=_get_str(
+            "RAG_RERANKER_MODEL",
+            "BAAI/bge-reranker-v2-m3",
+        ),
+        reranker_device=_get_str("RAG_RERANKER_DEVICE", "cuda"),
+        reranker_batch_size=_get_int("RAG_RERANKER_BATCH_SIZE", 8),
+        reranker_max_length=_get_int("RAG_RERANKER_MAX_LENGTH", 512),
         document_lookup_pattern=_get_str(
             "RAG_DOCUMENT_LOOKUP_PATTERN",
             r"(№|no|служебн\w*\s+задан\w*|приказ|положение|регламент|инструкц\w*|документ)",

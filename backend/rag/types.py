@@ -14,6 +14,7 @@ class RetrievedChunk:
     dense_score: float
     bm25_score: float
     raw_bm25: float | None
+    reranker_score: float | None
     title_coverage: float
     path_coverage: float
     exact_reference_match: float
@@ -37,6 +38,9 @@ class ChatResult:
 class RetrievalConfig:
     dense_top_k: int
     bm25_top_k: int
+    reranker_enabled: bool
+    reranker_top_k: int
+    reranker_weight: float
     final_top_k: int
     max_chunks_per_document: int
     doc_lookup_final_top_k: int

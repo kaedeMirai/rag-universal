@@ -9,6 +9,9 @@ def _base_retrieval_config() -> RetrievalConfig:
     return RetrievalConfig(
         dense_top_k=settings.dense_top_k,
         bm25_top_k=settings.bm25_top_k,
+        reranker_enabled=settings.reranker_enabled,
+        reranker_top_k=settings.reranker_top_k,
+        reranker_weight=settings.reranker_weight,
         final_top_k=settings.final_top_k,
         max_chunks_per_document=settings.max_chunks_per_document,
         doc_lookup_final_top_k=settings.doc_lookup_final_top_k,

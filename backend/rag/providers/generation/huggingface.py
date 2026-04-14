@@ -45,15 +45,20 @@ class HuggingFaceGenerationProvider:
         inputs = {key: value.to(self.input_device) for key, value in inputs.items()}
 
         with torch.no_grad():
+            generation_kwargs = {
+                "input_ids": inputs["input_ids"],
+                "attention_mask": inputs["attention_mask"],
+                "max_new_tokens": max_new_tokens,
+                "do_sample": self.do_sample,
+                "pad_token_id": self.tokenizer.pad_token_id,
+                "eos_token_id": self.tokenizer.eos_token_id,
+            }
+            if self.do_sample:
+                generation_kwargs["temperature"] = self.temperature
+                generation_kwargs["top_p"] = self.top_p
+
             generated = self.model.generate(
-                input_ids=inputs["input_ids"],
-                attention_mask=inputs["attention_mask"],
-                max_new_tokens=max_new_tokens,
-                temperature=self.temperature,
-                top_p=self.top_p,
-                do_sample=self.do_sample,
-                pad_token_id=self.tokenizer.pad_token_id,
-                eos_token_id=self.tokenizer.eos_token_id,
+                **generation_kwargs,
             )
 
         prompt_length = inputs["input_ids"].shape[-1]

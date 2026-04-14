@@ -6,6 +6,7 @@ from pathlib import Path
 
 from settings import settings
 from rag.providers.embeddings.factory import create_embedding_provider
+from rag.providers.rerankers.factory import create_reranker_provider
 from rag.types import ChunkRecord, RetrievedChunk, RetrievalConfig, RetrievalResult
 from rag.utils import normalize_scores, normalize_text, tokenize
 from weaviate_store import create_weaviate_client, ensure_weaviate_collection
@@ -23,6 +24,9 @@ class RetrievalEngine:
         self.collection = self.client.collections.use(settings.weaviate_collection)
         self.dataset = self._load_dataset()
         self.embedding_provider = create_embedding_provider()
+        self.reranker = (
+            create_reranker_provider() if config.reranker_enabled else None
+        )
         self.fts_connection = self._build_fts_index()
 
     def _load_dataset(self) -> list[ChunkRecord]:
@@ -237,6 +241,7 @@ class RetrievalEngine:
                     dense_score=dense_score,
                     bm25_score=bm25_score,
                     raw_bm25=raw_bm25,
+                    reranker_score=None,
                     title_coverage=title_coverage,
                     path_coverage=path_coverage,
                     exact_reference_match=exact_reference_match,
@@ -245,10 +250,67 @@ class RetrievalEngine:
             )
 
         ranked.sort(key=lambda item: item.score, reverse=True)
+        ranked = self._apply_reranker(query, ranked, intent=intent)
         return RetrievalResult(
             chunks=self._limit_results(ranked, intent=intent),
             intent=intent,
         )
+
+    def _apply_reranker(
+        self,
+        query: str,
+        ranked: list[RetrievedChunk],
+        *,
+        intent: str,
+    ) -> list[RetrievedChunk]:
+        if not self.reranker or not ranked:
+            return ranked
+
+        reranker_top_k = min(self.config.reranker_top_k, len(ranked))
+        rerank_candidates = ranked[:reranker_top_k]
+        reranker_scores_raw = self.reranker.score(
+            query,
+            [item.text for item in rerank_candidates],
+        )
+        normalized_reranker_scores = normalize_scores(
+            {idx: score for idx, score in enumerate(reranker_scores_raw)}
+        )
+
+        updated_candidates: list[RetrievedChunk] = []
+        reranker_weight = max(0.0, min(1.0, self.config.reranker_weight))
+        heuristic_weight = 1.0 - reranker_weight
+
+        for idx, item in enumerate(rerank_candidates):
+            reranker_score = normalized_reranker_scores.get(idx, 0.0)
+            final_score = (heuristic_weight * item.score) + (
+                reranker_weight * reranker_score
+            )
+            if intent == "document_lookup":
+                final_score += 0.05 * item.exact_reference_match
+
+            updated_candidates.append(
+                RetrievedChunk(
+                    chunk_id=item.chunk_id,
+                    path=item.path,
+                    title=item.title,
+                    text=item.text,
+                    page_start=item.page_start,
+                    page_end=item.page_end,
+                    source_locator=item.source_locator,
+                    dense_score=item.dense_score,
+                    bm25_score=item.bm25_score,
+                    raw_bm25=item.raw_bm25,
+                    reranker_score=reranker_score,
+                    title_coverage=item.title_coverage,
+                    path_coverage=item.path_coverage,
+                    exact_reference_match=item.exact_reference_match,
+                    score=final_score,
+                )
+            )
+
+        combined = updated_candidates + ranked[reranker_top_k:]
+        combined.sort(key=lambda item: item.score, reverse=True)
+        return combined
 
     def _limit_results(
         self,
