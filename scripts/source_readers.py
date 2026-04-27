@@ -17,10 +17,12 @@ SKIP_NAME_PATTERNS = [
     re.compile(pattern.strip(), re.IGNORECASE)
     for pattern in os.getenv(
         "RAG_SKIP_NAME_PATTERNS",
-        r"(^|[_\-\s])log([_\-\s\.]|$),^git[_\-\s\.],(^|[_\-\s])git([_\-\s\.]|$)",
+        r"(^|[_\-\s])logs?\d*([_\-\s\.]|$),^git[_\-\s\.],(^|[_\-\s])git([_\-\s\.]|$)",
     ).split(",")
     if pattern.strip()
 ]
+
+LOG_LIKE_PATTERN = re.compile(r"(^|[_\-\s])logs?\d*([_\-\s\.]|$)", re.IGNORECASE)
 
 EXTENSION_SIZE_LIMITS = {
     extension.strip().lower(): int(size_bytes.strip())
@@ -84,6 +86,10 @@ def mask_secret(value: str | None, keep: int = 2) -> str:
 def should_skip_file(file_name: str, file_path: str) -> bool:
     normalized_name = file_name.lower()
     normalized_path = file_path.lower()
+    if LOG_LIKE_PATTERN.search(normalized_name) or LOG_LIKE_PATTERN.search(
+        normalized_path
+    ):
+        return True
     return any(
         pattern.search(normalized_name) or pattern.search(normalized_path)
         for pattern in SKIP_NAME_PATTERNS

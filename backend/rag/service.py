@@ -1,6 +1,6 @@
 from rag.generation import GeneratorEngine
 from rag.retrieval import RetrievalEngine
-from rag.types import ChatResult, RAGProfile
+from rag.types import ChatResult, RAGProfile, RetrievalFilters
 
 
 class RAGService:
@@ -9,8 +9,8 @@ class RAGService:
         self.retrieval = RetrievalEngine(profile.retrieval)
         self.generator = GeneratorEngine(profile.generation)
 
-    def chat(self, query: str) -> ChatResult:
-        retrieval_result = self.retrieval.search(query)
+    def chat(self, query: str, *, filters: RetrievalFilters | None = None) -> ChatResult:
+        retrieval_result = self.retrieval.search(query, filters=filters)
 
         if not retrieval_result.chunks:
             return ChatResult(
@@ -52,7 +52,7 @@ class RAGService:
         exact_match = chunks[0].exact_reference_match
 
         confidence = (top_score * 0.65) + (score_gap * 0.35)
-        if intent == "document_lookup":
+        if intent in {"document_lookup", "reference_lookup"}:
             confidence += 0.15 * exact_match
 
         return round(max(0.0, min(1.0, confidence)), 3)

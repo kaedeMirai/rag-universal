@@ -105,6 +105,8 @@ class Settings:
     weaviate_collection: str
     weaviate_skip_init_checks: bool
 
+    hybrid_alpha: float
+    hybrid_fusion: str
     dense_top_k: int
     bm25_top_k: int
     final_top_k: int
@@ -129,6 +131,13 @@ class Settings:
     doc_lookup_exact_boost: float
     doc_lookup_title_boost: float
     doc_lookup_path_boost: float
+    entity_lookup_pattern: str
+    entity_query_max_tokens: int
+    entity_exact_boost: float
+    entity_title_boost: float
+    entity_path_boost: float
+    noisy_path_markers: set[str]
+    noisy_path_penalty: float
 
     gpu_context_budgets: tuple[int, ...]
     cpu_context_budgets: tuple[int, ...]
@@ -140,6 +149,7 @@ class Settings:
     generation_do_sample: bool
     rag_profile: str
     preload_models_on_startup: bool
+    debug_retrieval: bool
 
     chunk_tokens: int
     chunk_overlap: int
@@ -152,6 +162,7 @@ class Settings:
     reranker_max_length: int
 
     document_lookup_pattern: str
+    lexical_stopwords: set[str]
     reference_stopwords: set[str]
     system_prompt: str
     document_lookup_prompt_suffix: str
@@ -206,6 +217,8 @@ def load_settings() -> Settings:
         weaviate_api_key=_get_optional_str("RAG_WEAVIATE_API_KEY"),
         weaviate_collection=_get_str("RAG_WEAVIATE_COLLECTION", "DocumentChunk"),
         weaviate_skip_init_checks=_get_bool("RAG_WEAVIATE_SKIP_INIT_CHECKS", False),
+        hybrid_alpha=_get_float("RAG_HYBRID_ALPHA", 0.6),
+        hybrid_fusion=_get_str("RAG_HYBRID_FUSION", "relative_score"),
         dense_top_k=_get_int("RAG_DENSE_TOP_K", 24),
         bm25_top_k=_get_int("RAG_BM25_TOP_K", 24),
         final_top_k=_get_int("RAG_FINAL_TOP_K", 6),
@@ -218,9 +231,9 @@ def load_settings() -> Settings:
         doc_lookup_max_chunks_per_document=_get_int(
             "RAG_DOC_LOOKUP_MAX_CHUNKS_PER_DOCUMENT", 3
         ),
-        bm25_title_weight=_get_float("RAG_BM25_TITLE_WEIGHT", 8.0),
-        bm25_path_weight=_get_float("RAG_BM25_PATH_WEIGHT", 3.0),
-        bm25_text_weight=_get_float("RAG_BM25_TEXT_WEIGHT", 1.0),
+        bm25_title_weight=_get_float("RAG_BM25_TITLE_WEIGHT", 4.0),
+        bm25_path_weight=_get_float("RAG_BM25_PATH_WEIGHT", 1.5),
+        bm25_text_weight=_get_float("RAG_BM25_TEXT_WEIGHT", 2.5),
         rerank_dense_weight=_get_float("RAG_RERANK_DENSE_WEIGHT", 0.45),
         rerank_bm25_weight=_get_float("RAG_RERANK_BM25_WEIGHT", 0.30),
         rerank_title_weight=_get_float("RAG_RERANK_TITLE_WEIGHT", 0.15),
@@ -229,6 +242,31 @@ def load_settings() -> Settings:
         doc_lookup_exact_boost=_get_float("RAG_DOC_LOOKUP_EXACT_BOOST", 0.25),
         doc_lookup_title_boost=_get_float("RAG_DOC_LOOKUP_TITLE_BOOST", 0.18),
         doc_lookup_path_boost=_get_float("RAG_DOC_LOOKUP_PATH_BOOST", 0.10),
+        entity_lookup_pattern=_get_str(
+            "RAG_ENTITY_LOOKUP_PATTERN",
+            r"(информац\w*\s+о|что\s+такое|расскаж\w*\s+про|что\s+за|кто\s+так(ой|ая)|что\s+из\s+себя\s+представля\w*)",
+        ),
+        entity_query_max_tokens=_get_int("RAG_ENTITY_QUERY_MAX_TOKENS", 3),
+        entity_exact_boost=_get_float("RAG_ENTITY_EXACT_BOOST", 0.30),
+        entity_title_boost=_get_float("RAG_ENTITY_TITLE_BOOST", 0.35),
+        entity_path_boost=_get_float("RAG_ENTITY_PATH_BOOST", 0.12),
+        noisy_path_markers=_get_str_set(
+            "RAG_NOISY_PATH_MARKERS",
+            {
+                "/logs/",
+                "\\logs\\",
+                "_log",
+                ".log",
+                "requirements/",
+                "\\requirements\\",
+                "base.txt",
+                "stdout",
+                "stderr",
+                "trace",
+                "debug",
+            },
+        ),
+        noisy_path_penalty=_get_float("RAG_NOISY_PATH_PENALTY", 0.20),
         gpu_context_budgets=_get_int_tuple(
             "RAG_GPU_CONTEXT_BUDGETS", (1200, 800, 512, 320)
         ),
@@ -240,6 +278,7 @@ def load_settings() -> Settings:
         generation_do_sample=_get_bool("RAG_GENERATION_DO_SAMPLE", True),
         rag_profile=_get_str("RAG_PROFILE", "balanced"),
         preload_models_on_startup=_get_bool("RAG_PRELOAD_MODELS_ON_STARTUP", False),
+        debug_retrieval=_get_bool("RAG_DEBUG_RETRIEVAL", False),
         chunk_tokens=_get_int("RAG_CHUNK_TOKENS", 512),
         chunk_overlap=_get_int("RAG_CHUNK_OVERLAP", 100),
         embedding_batch_size=_get_int("RAG_EMBEDDING_BATCH_SIZE", 8),
@@ -255,6 +294,34 @@ def load_settings() -> Settings:
         document_lookup_pattern=_get_str(
             "RAG_DOCUMENT_LOOKUP_PATTERN",
             r"(№|no|служебн\w*\s+задан\w*|приказ|положение|регламент|инструкц\w*|документ)",
+        ),
+        lexical_stopwords=_get_str_set(
+            "RAG_LEXICAL_STOPWORDS",
+            {
+                "мне",
+                "нужен",
+                "нужна",
+                "нужно",
+                "нужны",
+                "найди",
+                "покажи",
+                "показать",
+                "информация",
+                "информацию",
+                "информации",
+                "инфо",
+                "документ",
+                "документы",
+                "документа",
+                "документе",
+                "файл",
+                "файлы",
+                "про",
+                "по",
+                "где",
+                "есть",
+                "нужное",
+            },
         ),
         reference_stopwords=_get_str_set(
             "RAG_REFERENCE_STOPWORDS",

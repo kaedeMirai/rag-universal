@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 
@@ -28,6 +29,18 @@ class RetrievalResult:
 
 
 @dataclass(frozen=True)
+class RetrievalFilters:
+    domains: tuple[str, ...] = ()
+    departments: tuple[str, ...] = ()
+    doc_types: tuple[str, ...] = ()
+    extensions: tuple[str, ...] = ()
+    languages: tuple[str, ...] = ()
+    acl_groups: tuple[str, ...] = ()
+    created_from: datetime | None = None
+    created_to: datetime | None = None
+
+
+@dataclass(frozen=True)
 class ChatResult:
     answer: str
     sources: list[str]
@@ -36,6 +49,8 @@ class ChatResult:
 
 @dataclass(frozen=True)
 class RetrievalConfig:
+    hybrid_alpha: float
+    hybrid_fusion: str
     dense_top_k: int
     bm25_top_k: int
     reranker_enabled: bool
@@ -56,7 +71,15 @@ class RetrievalConfig:
     doc_lookup_exact_boost: float
     doc_lookup_title_boost: float
     doc_lookup_path_boost: float
+    entity_lookup_pattern: str
+    entity_query_max_tokens: int
+    entity_exact_boost: float
+    entity_title_boost: float
+    entity_path_boost: float
+    noisy_path_markers: set[str]
+    noisy_path_penalty: float
     document_lookup_pattern: str
+    lexical_stopwords: set[str]
     reference_stopwords: set[str]
 
 

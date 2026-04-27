@@ -7,6 +7,8 @@ from rag.types import GenerationConfig, RAGProfile, RetrievalConfig
 
 def _base_retrieval_config() -> RetrievalConfig:
     return RetrievalConfig(
+        hybrid_alpha=settings.hybrid_alpha,
+        hybrid_fusion=settings.hybrid_fusion,
         dense_top_k=settings.dense_top_k,
         bm25_top_k=settings.bm25_top_k,
         reranker_enabled=settings.reranker_enabled,
@@ -27,7 +29,15 @@ def _base_retrieval_config() -> RetrievalConfig:
         doc_lookup_exact_boost=settings.doc_lookup_exact_boost,
         doc_lookup_title_boost=settings.doc_lookup_title_boost,
         doc_lookup_path_boost=settings.doc_lookup_path_boost,
+        entity_lookup_pattern=settings.entity_lookup_pattern,
+        entity_query_max_tokens=settings.entity_query_max_tokens,
+        entity_exact_boost=settings.entity_exact_boost,
+        entity_title_boost=settings.entity_title_boost,
+        entity_path_boost=settings.entity_path_boost,
+        noisy_path_markers=settings.noisy_path_markers,
+        noisy_path_penalty=settings.noisy_path_penalty,
         document_lookup_pattern=settings.document_lookup_pattern,
+        lexical_stopwords=settings.lexical_stopwords,
         reference_stopwords=settings.reference_stopwords,
     )
 

@@ -26,7 +26,19 @@ from source_readers import (
 
 
 logger = logging.getLogger("preparing_uploading")
-OUTPUT_FIELDS = ["file_path", "file_name", "extension", "content", "segments_json"]
+OUTPUT_FIELDS = [
+    "file_path",
+    "file_name",
+    "extension",
+    "domain",
+    "department",
+    "doc_type",
+    "language",
+    "acl_groups",
+    "created_at",
+    "content",
+    "segments_json",
+]
 
 
 def configure_logging() -> None:
@@ -149,6 +161,12 @@ def write_document_row(writer: csv.DictWriter, document: SourceDocument) -> bool
             "file_path": document.path,
             "file_name": document.title,
             "extension": document.extension,
+            "domain": "",
+            "department": "",
+            "doc_type": "",
+            "language": "",
+            "acl_groups": "",
+            "created_at": "",
             "content": extracted_document.text,
             "segments_json": serialize_segments(extracted_document.segments),
         }

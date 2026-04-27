@@ -7,7 +7,7 @@ class PromptBuilder:
 
     def build_messages(self, *, query: str, context: str, intent: str) -> list[dict[str, str]]:
         system_prompt = self.config.system_prompt
-        if intent == "document_lookup":
+        if intent in {"document_lookup", "reference_lookup"}:
             system_prompt += f" {self.config.document_lookup_prompt_suffix}"
 
         return [
